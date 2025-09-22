@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Leituras do Dia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; background:#f3f4f9; color:#222;}
+    header { background: #4267b2; color:#fff; padding:24px 10px; text-align:center;}
+    nav { background:#fff; box-shadow:0 2px 4px #0001; display:flex; gap:10px; justify-content:center; margin-bottom:16px; }
+    nav button { background:none; border:none; color:#4267b2; font-weight:bold; font-size:1em; padding:8px 18px; cursor:pointer;}
+    nav button:hover { background:#f0f4ff; }
+    section { display:none; max-width:700px; margin:30px auto; background:#fff; border-radius:10px; box-shadow:0 2px 6px #0001; padding:24px;}
+    section.active { display:block; }
+    .reading { background:#f9f9fc; border-left:4px solid #4267b2; border-radius:8px; margin-bottom:20px; padding:15px;}
+    .share-buttons { margin-top:12px; display:flex; gap:8px;}
+    .share-buttons button { background:#e7e7ff; border:1px solid #c3c3ff; color:#333; border-radius:4px; cursor:pointer; padding:5px 10px;}
+    .share-buttons button:hover { background:#c3c3ff;}
+    .admin-panel input { width:100%; margin-bottom:10px;}
+    .admin-panel button { margin-right:10px;}
+    .hidden { display:none;}
+    footer { text-align:center; color:#888; font-size:0.9em; margin:40px 0 15px 0;}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📖 Leituras do Dia</h1>
+  <p>Reflexões espirituais com curadoria editorial</p>
+</header>
+
+<nav>
+  <button onclick="mostrarSecao('sobre')">Sobre</button>
+  <button onclick="mostrarSecao('leituras')">Leituras</button>
+  <button onclick="mostrarSecao('contacto')">Contacto</button>
+  <button onclick="mostrarSecao('login')">Admin</button>
+</nav>
+
+<section id="sobre" class="active">
+  <h2>Sobre</h2>
+  <p>Este projeto nasceu do desejo de partilhar a Palavra com profundidade, beleza e acessibilidade.</p>
+</section>
+
+<section id="leituras">
+  <h2>Leituras do Dia</h2>
+  <div id="leiturasConteudo"></div>
+</section>
+
+<section id="contacto">
+  <h2>Contacto</h2>
+  <p>Telefone: <a href="tel:+258878512108">+258 87 851 2108</a></p>
+  <p>Email: <a href="mailto:lucas@email.com">lucas@email.com</a></p>
+</section>
+
+<section id="login">
+  <h2>Login do Administrador</h2>
+  <input type="password" id="senhaAdmin" placeholder="Senha">
+  <button onclick="verificarSenha()">Entrar</button>
+</section>
+
+<section id="admin" class="hidden">
+  <h2>Painel Administrativo</h2>
+  <div class="admin-panel">
+    <input type="text" id="dataLeitura" placeholder="Data">
+    <input type="text" id="primeiraLeitura" placeholder="1ª Leitura">
+    <input type="text" id="salmoLeitura" placeholder="Salmo Responsorial">
+    <input type="text" id="segundaLeitura" placeholder="2ª Leitura">
+    <input type="text" id="evangelhoLeitura" placeholder="Evangelho">
+    <button onclick="adicionarLeitura()">Adicionar</button>
+    <button onclick="mostrarSecao('leituras')">Voltar</button>
+    <button onclick="logoutAdmin()" style="background:#e74c3c;">Logout</button>
+  </div>
+</section>
+
+<footer>
+  &copy; <span id="anoAtual"></span> • Criado por Lucas João Francisco
+</footer>
+
+<script>
+  // Alterna entre seções
+  function mostrarSecao(id) {
+    document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if(id === 'leituras') renderizarLeituras();
+  }
+
+  // CRUD Leituras
+  function carregarLeituras() {
+    return JSON.parse(localStorage.getItem('leiturasSalvas') || "[]");
+  }
+  function salvarLeituras(leituras) {
+    localStorage.setItem('leiturasSalvas', JSON.stringify(leituras));
+  }
+  function renderizarLeituras() {
+    const container = document.getElementById('leiturasConteudo');
+    container.innerHTML = "";
+    let leituras = carregarLeituras();
+    if (leituras.length === 0) {
+      container.innerHTML = `<div class="reading">
+        <h3>📅 22 de Setembro de 2025</h3>
+        <p><strong>1ª Leitura:</strong> Sabedoria 7, 7-11</p>
+        <p><strong>Salmo Responsorial:</strong> Salmo 89</p>
+        <p><strong>2ª Leitura:</strong> Filipenses 4, 4-9</p>
+        <p><strong>Evangelho:</strong> Mateus 6, 25-34</p>
+        <div class="share-buttons">
+          <button onclick="partilharWhatsApp('Leitura do Dia')">WhatsApp</button>
+        </div>
+      </div>`;
+      return;
+    }
+    leituras.forEach((leit, idx) => {
+      const leituraTexto = `📅 ${leit.data}
+1ª Leitura: ${leit.primeira}
+Salmo Responsorial: ${leit.salmo}
+2ª Leitura: ${leit.segunda}
+Evangelho: ${leit.evangelho}`;
+      const div = document.createElement('div');
+      div.className = "reading";
+      div.innerHTML = `
+        <h3>📅 ${leit.data}</h3>
+        <p><strong>1ª Leitura:</strong> ${leit.primeira}</p>
+        <p><strong>Salmo Responsorial:</strong> ${leit.salmo}</p>
+        <p><strong>2ª Leitura:</strong> ${leit.segunda}</p>
+        <p><strong>Evangelho:</strong> ${leit.evangelho}</p>
+        <div class="share-buttons">
+          <button onclick="partilharWhatsApp(\`${leituraTexto}\`)">WhatsApp</button>
+          <button onclick="partilharFacebook(\`${leituraTexto}\`)">Facebook</button>
+          <button onclick="partilharTwitter(\`${leituraTexto}\`)">Twitter</button>
+          <button onclick="copiarConteudo(\`${leituraTexto.replace(/`/g, '\\`')}\`)">Copiar</button>
+        </div>
+        ${adminAtivo ? `<button onclick="excluirLeitura(${idx})" style="background:#e74c3c;color:#fff;margin-top:10px;">Excluir</button>` : ""}
+      `;
+      container.appendChild(div);
+    });
+  }
+  function adicionarLeitura() {
+    const data = document.getElementById('dataLeitura').value;
+    const primeira = document.getElementById('primeiraLeitura').value;
+    const salmo = document.getElementById('salmoLeitura').value;
+    const segunda = document.getElementById('segundaLeitura').value;
+    const evangelho = document.getElementById('evangelhoLeitura').value;
+    if (!data || !primeira || !salmo || !segunda || !evangelho) {
+      alert('Preencha todos os campos!');
+      return;
+    }
+    const leituras = carregarLeituras();
+    leituras.unshift({data, primeira, salmo, segunda, evangelho});
+    salvarLeituras(leituras);
+    renderizarLeituras();
+    document.getElementById('dataLeitura').value = '';
+    document.getElementById('primeiraLeitura').value = '';
+    document.getElementById('salmoLeitura').value = '';
+    document.getElementById('segundaLeitura').value = '';
+    document.getElementById('evangelhoLeitura').value = '';
+    mostrarSecao('leituras');
+  }
+  function excluirLeitura(idx) {
+    if (!confirm("Deseja excluir esta leitura?")) return;
+    const leituras = carregarLeituras();
+    leituras.splice(idx,1);
+    salvarLeituras(leituras);
+    renderizarLeituras();
+  }
+
+  // Login simples
+  let adminAtivo = false;
+  function verificarSenha() {
+    const senha = document.getElementById('senhaAdmin').value;
+    if (senha === 'admin123') {
+      adminAtivo = true;
+      document.getElementById('login').classList.remove('active');
+      document.getElementById('admin').classList.remove('hidden');
+      document.getElementById('admin').classList.add('active');
+    } else {
+      alert("Senha incorreta!");
+    }
+  }
+  function logoutAdmin() {
+    adminAtivo = false;
+    document.getElementById('admin').classList.remove('active');
+    document.getElementById('login').classList.add('active');
+  }
+
+  // Compartilhamento
+  function partilharWhatsApp(texto) {
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+  }
+  function partilharFacebook(texto) {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${encodeURIComponent(texto)}`, '_blank');
+  }
+  function partilharTwitter(texto) {
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(texto)}&url=${url}`, '_blank');
+  }
+  function copiarConteudo(texto) {
+    navigator.clipboard.writeText(texto);
+    alert('Conteúdo copiado!');
+  }
+
+  // Ano atual
+  document.getElementById('anoAtual').textContent = new Date().getFullYear();
+
+  // Inicializar leituras ao abrir página
+  renderizarLeituras();
+</script>
+
+</body>
+</html>
